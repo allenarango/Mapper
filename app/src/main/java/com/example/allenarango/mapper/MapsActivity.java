@@ -4,6 +4,7 @@ import android.location.Location;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationServices;
@@ -16,8 +17,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.*;
+import com.google.android.gms.location.LocationListener;
 
-public class MapsActivity extends FragmentActivity {
+
+public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
@@ -38,7 +41,12 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        if (mGoogleApiClient.isConnected()) {
+            setUpMapIfNeeded();    // <-from previous tutorial
+            startLocationUpdates();
+        }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -49,7 +57,12 @@ public class MapsActivity extends FragmentActivity {
         Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         showLocation(mCurrentLocation);
+        startLocationUpdates();
     }
+
+    private void startLocationUpdates() {
+    }
+
     @Override
     public void onConnectionSuspended(int i) {
     }
@@ -62,6 +75,22 @@ public class MapsActivity extends FragmentActivity {
                     new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 15));
         }
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        showLocation(location);
+        Log.i("Where am I?", "Latitude: " + mCurrentLocation.getLatitude() + ", Longitude:" + mCurrentLocation.getLongitude());
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //stop location updates
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
+    
+   
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
