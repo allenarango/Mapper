@@ -1,8 +1,12 @@
 package com.example.allenarango.mapper;
 
+import android.location.Location;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -10,8 +14,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.util.logging.Handler;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.*;
 
 public class MapsActivity extends FragmentActivity {
 
@@ -22,12 +26,41 @@ public class MapsActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks((ConnectionCallbacks) this)
+                .addOnConnectionFailedListener((OnConnectionFailedListener) this)
+                .addApi(LocationServices.API)
+                .build();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        showLocation(mCurrentLocation);
+    }
+    @Override
+    public void onConnectionSuspended(int i) {
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
+    protected void showLocation(Location mCurrentLocation) {
+        if (mCurrentLocation != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 15));
+        }
     }
 
     /**
@@ -51,6 +84,7 @@ public class MapsActivity extends FragmentActivity {
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
+            mMap.setMyLocationEnabled(true);
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
@@ -58,22 +92,34 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
+    private void setUpMap () {
+        mMap.setMyLocationEnabled(true);
+    }
+
+   /* public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener {
+
+    };*/
+
+    private GoogleApiClient mGoogleApiClient;
+
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
-    private void setUpMap() {
+
+
+   /*private void setUpMap() {
 
         Marker thinkfulMarker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(40.72493, -73.996599))
-                .title("Thinkful Headquarters"))
+                .title("Thinkful Headquarters")
                 .snippet("On a mission to reinvent education")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.thinkful)
-                );
+                ));
 
-        thinkfulMarker.showInfoWindow();
+       thinkfulMarker.showInfoWindow();
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(40.72493, -73.996599), 12));
@@ -88,5 +134,7 @@ public class MapsActivity extends FragmentActivity {
         }, 2000);
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-    }
+    }*/
+
+
 }
