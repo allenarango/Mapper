@@ -18,11 +18,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.*;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 
 public class MapsActivity extends FragmentActivity implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    protected Location mLastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +76,21 @@ public class MapsActivity extends FragmentActivity implements ConnectionCallback
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 15));
         }
+        if (mLastLocation !=null) {
+            mMap.addPolyline(new PolylineOptions()
+                            .add(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                            .add(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
+            );
+        }
+        mLastLocation = mCurrentLocation;
+
     }
+
 
     @Override
     public void onLocationChanged(Location location) {
         showLocation(location);
+        Location mCurrentLocation = null;
         Log.i("Where am I?", "Latitude: " + mCurrentLocation.getLatitude() + ", Longitude:" + mCurrentLocation.getLongitude());
     }
     
